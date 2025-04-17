@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aidoe Disease Detection</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div class="logo">🧬 AidoeAI</div>
+        <h1>Aidoe Disease Detection</h1>
+        <button class="contact-button">Contact Me</button>
+    </header>
+
+    <main>
+        <div class="upload-section">
+            <button onclick="startWebcam()">Use Webcam</button>
+            <input type="file" id="imageUpload" accept="image/*" style="display:none"
+                onchange="handleImageUpload(event)" />
+            <button onclick="document.getElementById('imageUpload').click()">Upload Image</button>
+        </div>
+
+        <div class="result">
+            <canvas id="frameCanvas" width="224" height="224"></canvas>
+            <p id="predictionText">Prediction will appear here.</p>
+        </div>
+
+        <div class="disclaimer">
+            <p><strong>Disclaimer:</strong> This tool is for educational purposes only and does not replace professional
+                medical advice or diagnosis.</p>
+        </div>
+    </main>
+
+    <footer>
+        <p>Follow us on</p>
+        <div class="social-icons">
+            <i class="fab fa-twitter"></i>
+            <i class="fab fa-linkedin"></i>
+            <i class="fab fa-github"></i>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+</body>
+
+</html>
