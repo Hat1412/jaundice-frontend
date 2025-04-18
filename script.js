@@ -1,41 +1,38 @@
+
 const canvas = document.getElementById('frameCanvas');
 const ctx = canvas.getContext('2d');
 const predictionText = document.getElementById('predictionText');
 
 function sendImageToServer(blob) {
+    console.log("Sending image to server...");
     const formData = new FormData();
     formData.append('image', blob, 'frame.jpg');
 
-    function sendImageToServer(blob) {
-        const formData = new FormData();
-        formData.append('image', blob, 'frame.jpg');
-
-        fetch('https://jaundice-backend-99m0.onrender.com/predict', {
-            method: 'POST',
-            body: formData
+    fetch('https://jaundice-backend-99m0.onrender.com/predict', {
+        method: 'POST',
+        body: formData
+    })
+        .then(async res => {
+            const contentType = res.headers.get("content-type");
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Server error: ${text}`);
+            }
+            if (contentType && contentType.includes("application/json")) {
+                return res.json();
+            } else {
+                throw new Error("Expected JSON response, got something else.");
+            }
         })
-            .then(async res => {
-                const contentType = res.headers.get("content-type");
-                if (!res.ok) {
-                    const text = await res.text();
-                    throw new Error(`Server error: ${text}`);
-                }
-                if (contentType && contentType.includes("application/json")) {
-                    return res.json();
-                } else {
-                    throw new Error("Expected JSON response, got something else.");
-                }
-            })
-            .then(data => {
-                predictionText.innerText = `Result: ${data.result}`;
-            })
-            .catch(err => {
-                predictionText.innerText = "Error predicting image.";
-                console.error("Prediction error:", err);
-            });
-    }
+        .then(data => {
+            predictionText.innerText = `Result: ${data.result}`;
+        })
+        .catch(err => {
+            predictionText.innerText = "Error predicting image.";
+            console.error("Prediction error:", err);
+        });
+    console.log("Image sent successfully.");
 }
-/*console logging trial */
 function startWebcam() {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
@@ -62,9 +59,21 @@ function handleImageUpload(event) {
     reader.onload = e => {
         img.onload = () => {
             ctx.drawImage(img, 0, 0, 224, 224);
-            canvas.toBlob(blob => {
+            if (canvas.toBlob) {
+                canvas.toBlob(blob => {
+                    sendImageToServer(blob);
+                }, 'image/jpeg');
+            } else {
+                const dataURL = canvas.toDataURL('image/jpeg');
+                const byteString = atob(dataURL.split(',')[1]);
+                const arrayBuffer = new ArrayBuffer(byteString.length);
+                const uint8Array = new Uint8Array(arrayBuffer);
+                for (let i = 0; i < byteString.length; i++) {
+                    uint8Array[i] = byteString.charCodeAt(i);
+                }
+                const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
                 sendImageToServer(blob);
-            }, 'image/jpeg');
+            }
         };
         img.src = e.target.result;
     };
