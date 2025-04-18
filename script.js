@@ -6,7 +6,7 @@ function sendImageToServer(blob) {
     const formData = new FormData();
     formData.append('image', blob, 'frame.jpg');
 
-    fetch('/predict', {
+    fetch(`https://jaundice-backend-99m0.onrender.com/predict`, {
         method: 'POST',
         body: formData
     })
