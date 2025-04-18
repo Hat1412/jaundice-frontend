@@ -35,7 +35,7 @@ function sendImageToServer(blob) {
             });
     }
 }
-
+/*console logging trial */
 function startWebcam() {
     navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
