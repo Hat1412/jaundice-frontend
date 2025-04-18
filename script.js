@@ -6,17 +6,28 @@ function sendImageToServer(blob) {
     const formData = new FormData();
     formData.append('image', blob, 'frame.jpg');
 
-    fetch(`https://jaundice-backend-99m0.onrender.com/predict`, {
+    fetch('https://jaundice-backend-99m0.onrender.com/predict', {
         method: 'POST',
         body: formData
     })
-        .then(res => res.json())
+        .then(async response => {
+            const contentType = response.headers.get("content-type");
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${errorText}`);
+            }
+            if (contentType && contentType.includes("application/json")) {
+                return response.json();
+            } else {
+                throw new Error("Response is not JSON");
+            }
+        })
         .then(data => {
             predictionText.innerText = `Result: ${data.result}`;
         })
         .catch(err => {
             predictionText.innerText = "Error predicting image.";
-            console.error(err);
+            console.error("Prediction error:", err);
         });
 }
 
