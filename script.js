@@ -1,81 +1,53 @@
 
-const canvas = document.getElementById('frameCanvas');
-const ctx = canvas.getContext('2d');
-const predictionText = document.getElementById('predictionText');
+const video = document.getElementById('video');
+const captureButton = document.getElementById('capture');
+const predictionText = document.getElementById('prediction');
+const uploadInput = document.getElementById('upload');
 
+const API_URL = 'https://huggingface.co/spaces/Hat1412/Jaundice_AI_model/run/predict'; // Replace if your space name is different
+
+// Setup webcam
+navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => video.srcObject = stream)
+  .catch(err => console.error("Webcam error:", err));
+
+// Handle webcam capture
+captureButton.addEventListener('click', () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  canvas.getContext('2d').drawImage(video, 0, 0);
+  canvas.toBlob(blob => sendImageToServer(blob), 'image/jpeg');
+});
+
+// Handle upload input
+uploadInput.addEventListener('change', () => {
+  const file = uploadInput.files[0];
+  if (file) {
+    sendImageToServer(file);
+  }
+});
+
+// Convert blob or file to base64 and send to Gradio
 function sendImageToServer(blob) {
-    console.log("Sending image to server...");
-    const formData = new FormData();
-    formData.append('image', blob, 'frame.jpg');
-
-    fetch('https://jaundice-backend-99m0.onrender.com/predict', {
-        method: 'POST',
-        body: formData
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    const base64data = reader.result.split(',')[1];
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: ["data:image/jpeg;base64," + base64data]
+      })
     })
-        .then(async res => {
-            const contentType = res.headers.get("content-type");
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Server error: ${text}`);
-            }
-            if (contentType && contentType.includes("application/json")) {
-                return res.json();
-            } else {
-                throw new Error("Expected JSON response, got something else.");
-            }
-        })
-        .then(data => {
-            predictionText.innerText = `Result: ${data.result}`;
-        })
-        .catch(err => {
-            predictionText.innerText = "Error predicting image.";
-            console.error("Prediction error:", err);
-        });
-    console.log("Image sent successfully.");
-}
-function startWebcam() {
-    navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-            const video = document.createElement('video');
-            video.srcObject = stream;
-            video.play();
-            video.addEventListener('loadeddata', () => {
-                ctx.drawImage(video, 0, 0, 224, 224);
-                canvas.toBlob(blob => {
-                    sendImageToServer(blob);
-                    stream.getTracks().forEach(track => track.stop());
-                }, 'image/jpeg');
-            });
-        })
-        .catch(err => console.error("Webcam error:", err));
-}
-
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const img = new Image();
-    const reader = new FileReader();
-    reader.onload = e => {
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0, 224, 224);
-            if (canvas.toBlob) {
-                canvas.toBlob(blob => {
-                    sendImageToServer(blob);
-                }, 'image/jpeg');
-            } else {
-                const dataURL = canvas.toDataURL('image/jpeg');
-                const byteString = atob(dataURL.split(',')[1]);
-                const arrayBuffer = new ArrayBuffer(byteString.length);
-                const uint8Array = new Uint8Array(arrayBuffer);
-                for (let i = 0; i < byteString.length; i++) {
-                    uint8Array[i] = byteString.charCodeAt(i);
-                }
-                const blob = new Blob([arrayBuffer], { type: 'image/jpeg' });
-                sendImageToServer(blob);
-            }
-        };
-        img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+      .then(res => res.json())
+      .then(data => {
+        predictionText.innerText = `Result: ${data.data[0]}`;
+      })
+      .catch(err => {
+        predictionText.innerText = "Error predicting image.";
+        console.error("Prediction error:", err);
+      });
+  };
+  reader.readAsDataURL(blob);
 }
