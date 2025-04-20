@@ -24,9 +24,15 @@
             <button onclick="document.getElementById('imageUpload').click()">Upload Image</button>
         </div>
 
+        <div class="webcam-section">
+            <video id="video" autoplay playsinline width="224" height="224"></video>
+            <button id="capture">Capture Image</button>
+        </div>
+
         <div class="result">
             <canvas id="frameCanvas" width="224" height="224"></canvas>
             <p id="predictionText">Prediction will appear here.</p>
+
         </div>
 
         <div class="disclaimer">

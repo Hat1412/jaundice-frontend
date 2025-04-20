@@ -1,34 +1,48 @@
+const API_URL = 'https://hf.space/embed/Hat1412/Jaundice_AI_model/raw/api/predict/';
 
 const video = document.getElementById('video');
 const captureButton = document.getElementById('capture');
 const predictionText = document.getElementById('prediction');
-const uploadInput = document.getElementById('upload');
-
-const API_URL = 'https://huggingface.co/spaces/Hat1412/Jaundice_AI_model/run/predict'; // Replace if your space name is different
+const uploadInput = document.getElementById('imageUpload');
+const canvas = document.getElementById('frameCanvas');
+const ctx = canvas.getContext('2d');
 
 // Setup webcam
-navigator.mediaDevices.getUserMedia({ video: true })
-  .then(stream => video.srcObject = stream)
-  .catch(err => console.error("Webcam error:", err));
+function startWebcam() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => {
+      video.srcObject = stream;
+    })
+    .catch(err => {
+      console.error("Webcam error:", err);
+    });
+}
+window.startWebcam = startWebcam;
 
-// Handle webcam capture
+// Webcam capture
 captureButton.addEventListener('click', () => {
-  const canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  canvas.getContext('2d').drawImage(video, 0, 0);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   canvas.toBlob(blob => sendImageToServer(blob), 'image/jpeg');
 });
 
-// Handle upload input
-uploadInput.addEventListener('change', () => {
-  const file = uploadInput.files[0];
+// Image upload
+uploadInput.addEventListener('change', (event) => {
+  const file = event.target.files[0];
   if (file) {
-    sendImageToServer(file);
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(blob => sendImageToServer(blob), 'image/jpeg');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 });
 
-// Convert blob or file to base64 and send to Gradio
+// Send image to backend
 function sendImageToServer(blob) {
   const reader = new FileReader();
   reader.onloadend = () => {
