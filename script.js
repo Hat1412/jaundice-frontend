@@ -1,67 +1,69 @@
-const API_URL = 'https://hf.space/embed/Hat1412/Jaundice_AI_model/raw/api/predict/';
+document.getElementById("imageUpload").addEventListener("change", async (e) => {
+    const input = e.target;
+    const formData = new FormData();
+    formData.append("file", input.files[0]);
 
-const video = document.getElementById('video');
-const captureButton = document.getElementById('capture');
-const predictionText = document.getElementById('prediction');
-const uploadInput = document.getElementById('imageUpload');
-const canvas = document.getElementById('frameCanvas');
-const ctx = canvas.getContext('2d');
-
-// Setup webcam
-function startWebcam() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => {
-      video.srcObject = stream;
-    })
-    .catch(err => {
-      console.error("Webcam error:", err);
-    });
-}
-window.startWebcam = startWebcam;
-
-// Webcam capture
-captureButton.addEventListener('click', () => {
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  canvas.toBlob(blob => sendImageToServer(blob), 'image/jpeg');
-});
-
-// Image upload
-uploadInput.addEventListener('change', (event) => {
-  const file = event.target.files[0];
-  if (file) {
-    const img = new Image();
+    const canvas = document.getElementById("frameCanvas");
+    const ctx = canvas.getContext("2d");
     const reader = new FileReader();
-    reader.onload = function (e) {
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        canvas.toBlob(blob => sendImageToServer(blob), 'image/jpeg');
-      };
-      img.src = e.target.result;
+
+    reader.onload = function (event) {
+        const img = new Image();
+        img.onload = function () {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        };
+        img.src = event.target.result;
     };
-    reader.readAsDataURL(file);
-  }
+    reader.readAsDataURL(input.files[0]);
+
+    try {
+        const response = await fetch("http://127.0.0.1:8000/predict/", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+        document.getElementById("prediction").textContent = JSON.stringify(data, null, 2);
+    } catch (error) {
+        console.error("Error:", error);
+        document.getElementById("prediction").textContent = "Error occurred while predicting.";
+    }
 });
 
-// Send image to backend
-function sendImageToServer(blob) {
-  const reader = new FileReader();
-  reader.onloadend = () => {
-    const base64data = reader.result.split(',')[1];
-    fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        data: ["data:image/jpeg;base64," + base64data]
-      })
-    })
-      .then(res => res.json())
-      .then(data => {
-        predictionText.innerText = `Result: ${data.data[0]}`;
-      })
-      .catch(err => {
-        predictionText.innerText = "Error predicting image.";
-        console.error("Prediction error:", err);
-      });
-  };
-  reader.readAsDataURL(blob);
+async function startWebcam() {
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("frameCanvas");
+    const captureButton = document.getElementById("capture");
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        captureButton.style.display = "inline-block";
+
+        captureButton.onclick = async () => {
+            const context = canvas.getContext("2d");
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(async (blob) => {
+                const formData = new FormData();
+                formData.append("file", blob);
+
+                try {
+                    const response = await fetch("http://127.0.0.1:8000/predict/", {
+                        method: "POST",
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    document.getElementById("prediction").textContent = JSON.stringify(data, null, 2);
+                } catch (error) {
+                    console.error("Error:", error);
+                    document.getElementById("prediction").textContent = "Error occurred while predicting.";
+                }
+            }, "image/jpeg");
+        };
+    } catch (error) {
+        console.error("Error accessing webcam:", error);
+        document.getElementById("prediction").textContent = "Error accessing webcam.";
+    }
 }

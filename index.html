@@ -2,54 +2,44 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aidoe Disease Detection</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AIDOE - Jaundice Detection</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-    <header>
-        <div class="logo">🧬 AidoeAI</div>
-        <h1>Aidoe Disease Detection</h1>
-        <button class="contact-button">Contact Me</button>
-    </header>
+  <header>
+    <div class="header-content">
+      <div class="text">
+        <h1>AIDOE</h1>
+        <p>AI-Powered Jaundice Detection from Facial Images</p>
+      </div>
+      <img src="dna.png" id="icon-image" alt="Medical AI Icon" />
+    </div>
+  </header>
 
-    <main>
-        <div class="upload-section">
-            <button onclick="startWebcam()">Use Webcam</button>
-            <input type="file" id="imageUpload" accept="image/*" style="display:none"
-                onchange="handleImageUpload(event)" />
-            <button onclick="document.getElementById('imageUpload').click()">Upload Image</button>
-        </div>
 
-        <div class="webcam-section">
-            <video id="video" autoplay playsinline width="224" height="224"></video>
-            <button id="capture">Capture Image</button>
-        </div>
+  <main>
+    <section class="controls">
+      <button onclick="startWebcam()">Turn on Webcam</button>
+      <input type="file" id="imageUpload" accept="image/*" />
+      <button id="capture" style="display: none;">Capture Frame</button>
+    </section>
 
-        <div class="result">
-            <canvas id="frameCanvas" width="224" height="224"></canvas>
-            <p id="predictionText">Prediction will appear here.</p>
+    <section class="preview">
+      <video id="video" autoplay></video>
+      <canvas id="frameCanvas" width="320" height="240"></canvas>
+      <pre id="prediction">Awaiting input...</pre>
+    </section>
+  </main>
 
-        </div>
+  <footer>
+    <p>Contact: <a href="mailto:youremail@example.com">youremail@example.com</a></p>
+    <p>&copy; 2025 AIDOE</p>
+  </footer>
 
-        <div class="disclaimer">
-            <p><strong>Disclaimer:</strong> This tool is for educational purposes only and does not replace professional
-                medical advice or diagnosis.</p>
-        </div>
-    </main>
-
-    <footer>
-        <p>Follow us on</p>
-        <div class="social-icons">
-            <i class="fab fa-twitter"></i>
-            <i class="fab fa-linkedin"></i>
-            <i class="fab fa-github"></i>
-        </div>
-    </footer>
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 
 </html>
